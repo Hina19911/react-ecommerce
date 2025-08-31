@@ -1,4 +1,5 @@
 // src/components/ProductsGrid.jsx
+import { Link } from "react-router-dom";
 
 // ProductsGrid is a reusable component that expects a "products" prop
 // Example: <ProductsGrid products={myArrayOfProducts} />
@@ -22,21 +23,19 @@ export default function ProductsGrid(props) {
             // transition / transform / hover:* → animations when hovering
             className="p-4 bg-white rounded shadow transition transform hover:-translate-y-1 hover:shadow-lg"
           >
-            {/* Product image */}
-            <img
-              src={product.image}
-              alt={product.title}
-              
-              // h-40 → fixed image height
-              // mx-auto → center image horizontally
-              // mb-4 → margin below
-              // object-contain → scale image without cropping
-              // transition-transform + hover:scale-105 → zoom in slightly on hover
-              className="h-40 mx-auto mb-4 object-contain transition-transform duration-200 hover:scale-105"
-            />
+            {/* Wrap image & title in a Link */}
+       <Link to={`/item/${product.id}`} className="block group">
+         <img
+           src={product.image}
+           alt={product.title}
+           className="h-40 mx-auto mb-4 object-contain"
+         />
+         <h2 className="text-lg font-semibold group-hover:underline">
+           {product.title}          </h2>        </Link>
+            
+             
   
-            {/* Product title */}
-            <h2 className="text-lg font-semibold">{product.title}</h2>
+         
   
             {/* Product price */}
             <p className="text-gray-700 mt-2">${product.price}</p>
