@@ -1,12 +1,130 @@
-# React + Vite
+# Ecommerce React App + Stripe Checkout
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple ecommerce demo built with **React (Vite)**, **React Router**, **Context API** (cart), **TanStack Query** (data), **Tailwind CSS**, and **Stripe Checkout** for payments. Includes product listing with filters, product detail page, cart, checkout form, and a success screen.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## Expanding the ESLint configuration
+- Product list with **price/category filters**
+- Product **detail** page (`/item/:id`)
+- **Cart** with add/remove/update quantity
+- **Coupon** demo (`SAVE10`, `SAVE15` with $100 min)
+- **Checkout** form + **Stripe Checkout** redirect
+- **Success** page (`/checkout/success`)
+- Data fetching with **TanStack Query**
+- Styling with **Tailwind CSS**
+- State via **React Context** (Cart)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🧱 Project Structure
+
+```
+.
+├── ecommerce/                 # React app (Vite)
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   └── services/
+│   ├── public/
+│   │   └── screenshots/       # <— put images here for README
+│   ├── .env                    # VITE_STRIPE_PUBLISHABLE_KEY=...
+│   └── package.json
+└── server/                    # Express server for Stripe
+    ├── index.js
+    ├── .env                   # STRIPE_SECRET_KEY=...
+    └── package.json
+```
+
+---
+
+## 🔧 Prerequisites
+
+- Node.js 18+ recommended
+- Stripe test keys (publishable + secret)
+
+---
+
+## ⚙️ Environment Variables
+
+**Frontend `ecommerce/.env`**
+```
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+```
+
+**Backend `server/.env`**
+```
+STRIPE_SECRET_KEY=sk_test_xxx
+```
+
+> Never commit secrets. Ensure `.env` is in `.gitignore`.
+
+---
+
+## 🚀 Getting Started (Local)
+
+### 1) Install & run the backend (Stripe server)
+```bash
+cd server
+npm install
+# If using ES Modules, package.json should include: "type": "module"
+npm run start
+# server runs on http://localhost:4242
+```
+
+**server/index.js** (summary)
+- `POST /create-checkout-session` creates a Stripe Checkout Session from cart items.
+- `success_url` → `http://localhost:5173/checkout/success`
+- `cancel_url` → `http://localhost:5173/cart`
+
+### 2) Install & run the frontend
+```bash
+cd ../ecommerce
+npm install
+npm run dev
+# app runs on http://localhost:5173
+```
+
+---
+
+## 🛒 Stripe Checkout Flow (how it works)
+
+- In `Checkout.jsx`, the form collects user data.
+- We call `startStripeCheckout(items)` (in `src/services/stripeCheckout.js`) which:
+  1. `POST`s cart items to `http://localhost:4242/create-checkout-session`
+  2. Receives a `session.id`
+  3. Calls `stripe.redirectToCheckout({ sessionId })`
+- Stripe hosts payment UI and, on success, redirects back to `/checkout/success`.
+
+> If you want to clear the cart **after** real payment, call `clearCart()` in the Success page’s `useEffect`.
+
+---
+
+## 📸 Screenshots
+
+
+
+### Filters (Products)
+![Products](/public/Screenshot_1.png)
+
+### Stripe Checkout
+![Detail](/public/Screenshot_2.png)
+
+### Shopping Cart
+![Cart](/public/shoppingCart.png)
+
+### Checkout
+![Checkout](/public/Screenshot_3.png)
+
+
+---
+
+## 🧪 Test Cards (Stripe)
+
+Use Stripe test card numbers on Checkout:
+
+- **4242 4242 4242 4242** — any future expiry, any CVC, any ZIP
+
