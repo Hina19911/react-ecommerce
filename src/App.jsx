@@ -17,6 +17,10 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 import ProductsPage from './components/Products'; // Home: Filters + Grid
 import ItemPage from './pages/Product';           // Product details
 import NotFound from './pages/NotFound';          // 404
+import Checkout from './pages/Checkout';          //checkout
+import { CartProvider } from './context/CartProvider';
+import Cart from './pages/Cart';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 
 // Create a single QueryClient for the app (module scope, not inside a component)
 const queryClient = new QueryClient();
@@ -62,19 +66,26 @@ function AppContent() {
 
       <main className="flex-grow flex bg-gray-100">
         <section className="flex-grow p-4 w-full">
+         
           <Routes>
             {/* Home: pass the derived list + filter setter */}
             <Route
               path="/"
               element={<ProductsPage products={filteredProducts} onFilter={setFilter} />}
             />
-
+            {/*checkout details*/}
+            <Route path='/cart' element={<Cart />} />
+            <Route path='/checkout' element={<Checkout />} />
+            
+            
+            <Route path='/checkout/success' element={<CheckoutSuccess />} />
             {/* Details page: reads :id and fetches a single product */}
             <Route path="/item/:id" element={<ItemPage />} />
 
             {/* 404 catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          
         </section>
       </main>
 

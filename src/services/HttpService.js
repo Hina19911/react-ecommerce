@@ -18,5 +18,17 @@ export class HttpService {
   }
 
   // add POST, PUT, DELETE here as well for reuse
+  // ✅ add this
+  async post(url, body, config = {}) {
+    try {
+      const { data } = await this.client.post(url, body, config);
+      return data;
+    } catch (error) {
+      console.error('POST request failed:', error);
+      throw error;
+    }
+  }
 }
+
+
 

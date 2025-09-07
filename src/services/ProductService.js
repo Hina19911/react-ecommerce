@@ -30,7 +30,29 @@ class ProductsService extends HttpService {
   async getProduct(id) {
     return this.get(`/products/${id}`);
   }
+   // ✅ CREATE ORDER
+   async createOrder(order) {
+    // FakeStore API expects: { userId, date, products: [{productId, quantity}] }
+    const products = (order.products || []).map(p => ({
+      productId: Number(p.id),
+      quantity: Number(p.quantity ?? 1),
+    }));
+
+    const payload = {
+      userId: Number(order.userId ?? 1),
+      date: order.date ?? new Date().toISOString(),
+      products,
+    };
+
+    // Helpful while debugging
+    console.log('POST /carts payload:', payload);
+
+    return this.post('/carts', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
+
 
 // Export a single shared instance so we don't need to `new ProductsService()` everywhere
 export const productsService = new ProductsService();
