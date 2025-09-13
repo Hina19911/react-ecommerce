@@ -1,66 +1,158 @@
-// A presentational component for the filter button bar.
-// It does NOT own data; it just renders buttons and notifies parent on change.
-
-// Props:
-// - activeFilter (string): which filter is currently selected
-// - onChange (fn): parent-supplied setter, e.g. setActiveFilter
-
 // src/components/Filters.jsx
-import { use, Suspense } from 'react';
+// src/components/Filters.jsx (compact)
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 
-// fetch once, cache at module level
-const categoriesPromise = fetch('https://fakestoreapi.com/products/categories')
-  .then(r => r.json());
+const cx = (...x) => x.filter(Boolean).join(" ");
 
-// Inner component that suspends while categories load
-function FiltersContent({ onFilter }) {
-  const categories = use(categoriesPromise);
+export default function Filters({ onFilter, currentFilter }) {
+  const [categories, setCategories] = useState([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+  const [search, setSearch] = useState("");
 
-  const send = (payload) => {
-    if (typeof onFilter === 'function') onFilter(payload);
-  };
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      try {
+        const r = await fetch("https://fakestoreapi.com/products/categories");
+        const d = await r.json();
+        if (!cancel) setCategories(Array.isArray(d) ? d : []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancel) setLoadingCats(false);
+      }
+    })();
+    return () => (cancel = true);
+  }, []);
+
+  const send = (p) => typeof onFilter === "function" && onFilter(p);
+  const isActive = (t, v) =>
+    currentFilter?.type === t && (v === undefined || currentFilter?.value === v);
 
   return (
-    <aside className="p-4 w-64 bg-white border-r border-gray-200">
-      <h2 className="text-lg font-semibold mb-4">Filters</h2>
+    <aside className="w-full max-w-[240px] shrink-0 border-r border-black/10 bg-purple-400">
+      {/* slimmer header */}
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 px-3 py-2 text-white">
+        <h2 className="text-sm font-semibold tracking-wide">Filters</h2>
+      </div>
 
-      {/* Price & All (your buttons) */}
-      <button
-        type="button"
-        className="block w-full px-4 py-2 my-2 text-white rounded bg-gray-700 hover:bg-gray-800"
-        onClick={() => send({ type: 'price', value: 500 })}
-      >
-        Under $500
-      </button>
+      <div className="space-y-4 p-3">
+        {/* Search — compact */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-700">
+            Search
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Titles…"
+              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs placeholder:text-slate-400 focus:border-fuchsia-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => send({ type: "search", value: search.trim() })}
+              className="rounded-md bg-fuchsia-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-fuchsia-600"
+            >
+              Go
+            </button>
+          </div>
+        </div>
 
-      <button
-        type="button"
-        className="block w-full px-4 py-2 my-2 text-white rounded bg-blue-600 hover:bg-blue-700"
-        onClick={() => send({ type: 'all' })}
-      >
-        Show all Products
-      </button>
+        {/* Price + All — smaller buttons */}
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => send({ type: "price", value: 500 })}
+            className={cx(
+              "w-full rounded-md border px-3 py-1.5 text-left text-xs font-medium transition",
+              isActive("price", 500)
+                ? "border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700"
+                : "border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50/50"
+            )}
+          >
+            Under $500
+          </button>
+          <button
+            type="button"
+            onClick={() => send({ type: "all" })}
+            className={cx(
+              "w-full rounded-md border px-3 py-1.5 text-left text-xs font-medium transition",
+              isActive("all")
+                ? "border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700"
+                : "border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50/50"
+            )}
+          >
+            Show All
+          </button>
+        </div>
 
-      {/* Category buttons (dynamic) */}
-      {categories.map((cat) => (
-        <button
-          type="button"
-          key={cat}
-          className="block w-full px-4 py-2 my-2 text-white rounded bg-gray-500 hover:bg-gray-600"
-          onClick={() => send({ type: 'category', value: cat })}
-        >
-          {cat}
-        </button>
-      ))}
+        {/* Categories — horizontal chips (wrapping) */}
+        <div>
+          <div className="mb-1 text-xs font-semibold text-slate-800">
+            Categories
+          </div>
+          {loadingCats ? (
+            <div className="text-xs text-slate-500">Loading…</div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => send({ type: "category", value: cat })}
+                  className={cx(
+                    "rounded-full border px-3 py-1 text-xs capitalize transition",
+                    isActive("category", cat)
+                      ? "border-fuchsia-500 bg-fuchsia-50 text-fuchsia-700"
+                      : "border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50/50"
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Sort — compact */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => send({ type: "sort", value: "price-asc" })}
+            className={cx(
+              "flex-1 rounded-md border px-3 py-1.5 text-xs transition",
+              isActive("sort", "price-asc")
+                ? "border-fuchsia-500 bg-pink-500 text-fuchsia-700"
+                : "border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50/50"
+            )}
+          >
+            Price ↑
+          </button>
+          <button
+            type="button"
+            onClick={() => send({ type: "sort", value: "price-desc" })}
+            className={cx(
+              "flex-1 rounded-md border px-3 py-1.5 text-xs transition",
+              isActive("sort", "price-desc")
+                ? "border-fuchsia-500 bg-pink-500 text-fuchsia-700"
+                : "border-slate-200 hover:border-fuchsia-400 hover:bg-fuchsia-50/50"
+            )}
+          >
+            Price ↓
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }
 
-// Suspense boundary shows fallback until categories resolve
-export default function Filters(props) {
-  return (
-    <Suspense fallback={<div className="p-4">Loading filters…</div>}>
-      <FiltersContent {...props} />
-    </Suspense>
-  );
-}
+Filters.propTypes = {
+  onFilter: PropTypes.func.isRequired,
+  currentFilter: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    value: PropTypes.any,
+  }),
+};

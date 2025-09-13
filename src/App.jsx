@@ -21,6 +21,10 @@ import Checkout from './pages/Checkout';          //checkout
 import { CartProvider } from './context/CartProvider';
 import Cart from './pages/Cart';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import Locations from './pages/Locations';
+import { AuthProvider } from "./context/AuthProvider";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 
 // Create a single QueryClient for the app (module scope, not inside a component)
 const queryClient = new QueryClient();
@@ -66,7 +70,18 @@ function AppContent() {
 
       <main className="flex-grow flex bg-gray-100">
         <section className="flex-grow p-4 w-full">
-         
+        <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
+          {/* your layout + routes */}
+          <Routes>
+            {/* existing routes… */}
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </QueryClientProvider>
           <Routes>
             {/* Home: pass the derived list + filter setter */}
             <Route
@@ -76,8 +91,8 @@ function AppContent() {
             {/*checkout details*/}
             <Route path='/cart' element={<Cart />} />
             <Route path='/checkout' element={<Checkout />} />
-            
-            
+            {/*map location*/}
+            <Route path="/locations" element={<Locations />} />
             <Route path='/checkout/success' element={<CheckoutSuccess />} />
             {/* Details page: reads :id and fetches a single product */}
             <Route path="/item/:id" element={<ItemPage />} />
